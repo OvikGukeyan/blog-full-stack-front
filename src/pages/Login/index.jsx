@@ -1,15 +1,17 @@
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import { useForm } from "react-hook-form";
+import { Navigate } from "react-router-dom";
 
 import styles from "./Login.module.scss";
-import { fetchAuthData } from "../../redux/slices/authSlice";
+import { fetchAuth, selectAuth } from "../../redux/slices/authSlice";
 
 export const Login = () => {
+  const isAuth = useSelector(selectAuth)
   const dispatch = useDispatch();
   const { register, handleSubmit, setError, formState: { errors, isValid } } = useForm({
     defaultValues: {
@@ -19,8 +21,20 @@ export const Login = () => {
     mode: 'onChange'
   })
 
-  const onSubmit = (values) => {
-    dispatch(fetchAuthData(values))
+  const onSubmit = async (values) => {
+    const data = await dispatch(fetchAuth(values));
+    console.log(data)
+    if(!data.payload) {
+      return alert('Failed to login!')
+    }
+
+    if('token' in data.payload) {
+      window.localStorage.setItem('token', data.payload.token)
+    }
+  }
+
+  if(isAuth) {
+    return <Navigate to='/'/>
   }
 
   return (
