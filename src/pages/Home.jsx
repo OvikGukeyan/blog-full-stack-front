@@ -8,11 +8,13 @@ import { Post } from '../components/Post';
 import { TagsBlock } from '../components/TagsBlock';
 import { CommentsBlock } from '../components/CommentsBlock';
 import { fetchPosts, fetchTags, selectPosts } from "../redux/slices/postsSlice"
+import { selectAuthData } from '../redux/slices/authSlice';
 
 
 export const Home = () => {
   const dispatch = useDispatch();
   const {posts, tags} = useSelector(selectPosts);
+  const userData = useSelector(selectAuthData);
   const isPostLoading = posts.status === 'loading';
   const isTagsLoading = tags.status === 'loading';
 
@@ -44,7 +46,7 @@ export const Home = () => {
               viewsCount={obj.viewsCount}
               commentsCount={3}
               tags={obj.tags}
-              isEditable
+              isEditable={userData?._id === obj.user._id}
             />
           ))}
         </Grid>
