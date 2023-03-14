@@ -1,42 +1,69 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import SimpleMDE from 'react-simplemde-editor';
 import { useSelector } from 'react-redux';
-import { Navigate } from 'react-router-dom';
-import  axios  from "../../axios";
+import { Navigate, useNavigate } from 'react-router-dom';
+import axios from "../../axios";
 
 import 'easymde/dist/easymde.min.css';
 import styles from './AddPost.module.scss';
 import { selectAuth } from '../../redux/slices/authSlice';
 
 export const AddPost = () => {
+  const navigate = useNavigate();
   const isAuth = useSelector(selectAuth);
-  const imageUrl = '';
-  const [value, setValue] = React.useState('');
-  const [title, setTitle] = React.useState('');
-  const [tags, setTags] = React.useState('');
+  const [isLoading, setLoading] = useState(false)
+  const [text, setText] = useState('');
+  const [title, setTitle] = useState('');
+  const [tags, setTags] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const inputFileRef = useRef(null);
- 
 
-  const handleChangeFile = async(e) => { 
+
+  const handleChangeFile = async (e) => {
     try {
       const formData = new FormData();
       const file = e.target.files[0]
       formData.append('image', file)
-      const {data} = await axios.post('/uoload', formData);
-      console.log(data)
+      const { data } = await axios.post('/upload', formData);
+      setImageUrl(data.url)
+      console.log(data.url)
     } catch (error) {
-      
+      console.warn(error)
+      alert('Upload error')
     }
   };
 
-  const onClickRemoveImage = () => { };
+  const onClickRemoveImage = () => {
+    setImageUrl('')
+  };
 
   const onChange = React.useCallback((value) => {
-    setValue(value);
+    setText(value);
   }, []);
+
+  const onSubmit = async () => {
+    try {
+      setLoading(true)
+      const fields = {
+        title,
+        imageUrl,
+        tags,
+        text
+      }
+      console.log(fields)
+      const { data } = await axios.post('/posts', fields);
+      console.log(data)
+      const id = data._id;
+
+      navigate(`/posts/${id}`)
+    } catch (error) {
+      console.warn(error)
+      alert('Failed to create article')
+    }
+  }
 
   const options = React.useMemo(
     () => ({
@@ -64,12 +91,12 @@ export const AddPost = () => {
       </Button>
       <input ref={inputFileRef} type="file" onChange={handleChangeFile} hidden />
       {imageUrl && (
-        <Button variant="contained" color="error" onClick={onClickRemoveImage}>
-          Удалить
-        </Button>
-      )}
-      {imageUrl && (
-        <img className={styles.image} src={`http://localhost:4444${imageUrl}`} alt="Uploaded" />
+        <>
+          <Button variant="contained" color="error" onClick={onClickRemoveImage}>
+            Удалить
+          </Button>
+          <img className={styles.image} src={`http://localhost:777/${imageUrl}`} alt="Uploaded" />
+        </>
       )}
       <br />
       <br />
@@ -86,15 +113,15 @@ export const AddPost = () => {
         variant="standard"
         placeholder="Tags"
         value={tags}
-        onChange={(e) => setTags(e.target.value)}
+        onChange={(e) => setTags(e.target.value.split(','))}
         fullWidth />
-      <SimpleMDE className={styles.editor} value={value} onChange={onChange} options={options} />
+      <SimpleMDE className={styles.editor} value={text} onChange={onChange} options={options} />
       <div className={styles.buttons}>
-        <Button size="large" variant="contained">
+        <Button onClick={onSubmit} size="large" variant="contained">
           Опубликовать
         </Button>
         <a href="/">
-          <Button size="large">Отмена</Button>
+          <Button  size="large">Отмена</Button>
         </a>
       </div>
     </Paper>
