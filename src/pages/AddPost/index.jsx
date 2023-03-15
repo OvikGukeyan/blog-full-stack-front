@@ -113,7 +113,7 @@ export const AddPost = () => {
         variant="standard"
         placeholder="Tags"
         value={tags}
-        onChange={(e) => setTags(e.target.value.split(','))}
+        onChange={(e) => setTags(e.target.value)}
         fullWidth />
       <SimpleMDE className={styles.editor} value={text} onChange={onChange} options={options} />
       <div className={styles.buttons}>

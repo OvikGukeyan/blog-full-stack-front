@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../axios";
+import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 
 
 import { Post } from "../components/Post";
@@ -36,17 +37,14 @@ console.log(id)
       <Post
         id={1}
         title={data.title}
-        imageUrl={`http://localhost:777/${data.imageUrl}`}
+        imageUrl={data.imageUrl}
         user={data.user}
         createdAt={data.createdAt}
         viewsCount={data.viewsCount}
         commentsCount={data.commentsCount}
         tags={data.tags}
-        isFullPost
-      >
-        <p>
-          {data.text}
-        </p>
+        isFullPost>
+        <ReactMarkdown children={data.text} />
       </Post>
       <CommentsBlock
         items={[

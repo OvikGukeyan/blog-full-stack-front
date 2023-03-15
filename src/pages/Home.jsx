@@ -21,16 +21,13 @@ export const Home = () => {
   useEffect(() => {
     dispatch(fetchPosts())
     dispatch(fetchTags())
-
-  }, [])
-  
-
+  }, []);
 
   return (
     <>
       <Tabs style={{ marginBottom: 15 }} value={0} aria-label="basic tabs example">
-        <Tab label="Новые" />
-        <Tab label="Популярные" />
+        <Tab label="New" />
+        <Tab label="Popular" />
       </Tabs>
       <Grid container spacing={4}>
         <Grid xs={8} item>
