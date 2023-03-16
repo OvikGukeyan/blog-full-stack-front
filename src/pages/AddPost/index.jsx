@@ -1,10 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import SimpleMDE from 'react-simplemde-editor';
 import { useSelector } from 'react-redux';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import axios from "../../axios";
 
 import 'easymde/dist/easymde.min.css';
@@ -12,6 +12,7 @@ import styles from './AddPost.module.scss';
 import { selectAuth } from '../../redux/slices/authSlice';
 
 export const AddPost = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const isAuth = useSelector(selectAuth);
   const [isLoading, setLoading] = useState(false)
@@ -20,6 +21,7 @@ export const AddPost = () => {
   const [tags, setTags] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const inputFileRef = useRef(null);
+  const isEditing = Boolean(id)
 
 
   const handleChangeFile = async (e) => {
@@ -29,7 +31,6 @@ export const AddPost = () => {
       formData.append('image', file)
       const { data } = await axios.post('/upload', formData);
       setImageUrl(data.url)
-      console.log(data.url)
     } catch (error) {
       console.warn(error)
       alert('Upload error')
@@ -53,24 +54,36 @@ export const AddPost = () => {
         tags,
         text
       }
-      console.log(fields)
-      const { data } = await axios.post('/posts', fields);
-      console.log(data)
-      const id = data._id;
+      const { data } = isEditing ? await axios.patch(`/posts/${id}`, fields) : await axios.post('/posts', fields);
+      const _id = isEditing ? id : data._id;
 
-      navigate(`/posts/${id}`)
+      navigate(`/posts/${_id}`)
     } catch (error) {
       console.warn(error)
       alert('Failed to create article')
     }
   }
 
+  useEffect(() => {
+    if(id) {
+      axios.get(`/posts/${id}`).then(({data}) => {
+        setImageUrl(data.imageUrl);
+        setTitle(data.title);
+        setText(data.text);
+        setTags(data.tags.join(','));
+      }).catch((error) => {
+        console.warn(error);
+        alert('Failed to get article')
+      })
+    }
+  }, [])
+
   const options = React.useMemo(
     () => ({
       spellChecker: false,
       maxHeight: '400px',
       autofocus: true,
-      placeholder: 'Введите текст...',
+      placeholder: 'Enter text...',
       status: false,
       autosave: {
         enabled: true,
@@ -95,7 +108,7 @@ export const AddPost = () => {
           <Button variant="contained" color="error" onClick={onClickRemoveImage}>
             Удалить
           </Button>
-          <img className={styles.image} src={`http://localhost:777/${imageUrl}`} alt="Uploaded" />
+          <img className={styles.image} src={`${process.env.REACT_APP_API_URL}${imageUrl}`} alt="Uploaded" />
         </>
       )}
       <br />
@@ -118,10 +131,10 @@ export const AddPost = () => {
       <SimpleMDE className={styles.editor} value={text} onChange={onChange} options={options} />
       <div className={styles.buttons}>
         <Button onClick={onSubmit} size="large" variant="contained">
-          Опубликовать
+        {isEditing ? 'Save' : 'Publish'}
         </Button>
         <a href="/">
-          <Button  size="large">Отмена</Button>
+          <Button size="large">Cancel</Button>
         </a>
       </div>
     </Paper>

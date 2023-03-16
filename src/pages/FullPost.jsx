@@ -12,7 +12,6 @@ export const FullPost = () => {
   const {id} = useParams();
   const [data, setData] = useState();
   const [isLoading, setIsLoading] = useState(true)
-console.log(id)
 
   useEffect(() => {
     axios.get(`/posts/${id}`)
@@ -25,7 +24,6 @@ console.log(id)
       alert('Error getting article!')
     })
   }, [])
-  console.log(data)
 
 
   if(isLoading) {
